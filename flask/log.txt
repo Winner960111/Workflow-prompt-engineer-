@@ -1,0 +1,17 @@
+To candidate => Dear HaoMing Lin, Your profile strongly matches our Senior Full-stack Developer position in Texas. Would you be interested in learning more about this opportunity?
+To candidate => Hello Chenyi Hao, 
+
+I hope this message finds you well. We have an opening for a Senior Full-stack Developer role at our Texas office. Your profile appears to be a strong match for this position. Would you be interested in learning more about this opportunity?
+From candidate => Yes, I am interested in this position.
+To candidate => Would you prefer to review the job description first, or speak directly to the hiring manager about the position?
+From candidate => Yes, I am interested in this position.
+To candidate => Would you prefer to review the job description first or proceed directly to an interview with our hiring manager?
+From candidate => I want to interview.
+To candidate => Good! And then, I would like to schedule an interview with the hiring manager for this project.
+Could you please confirm your availability for an interview on Feb 6, 2024, choosing from the following time slots?
+
+- 19:00 - 19:30
+- 19:30 - 20:00
+- 20:00 - 20:30
+From candidate => first option
+To candidate => Your interview has been scheduled on 6th February 2024, from 19:00 to 19:30 Zulu time.

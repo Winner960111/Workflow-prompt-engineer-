@@ -246,14 +246,15 @@ def read_simple_email():
                     res = calendar_book(timeslot[from_email], clean_msg(
                         msg['snippet']), from_email)
                     print(res)
-                    call_res = ""
                     if res == "None":
-                        call_res = calendar_show()
+                        timeslot[from_email] = calendar_show()
+                        print(timeslot[from_email])
+                        send_email(from_email, timeslot[from_email])
                     else:
                         call_res = reserve_message(from_email, res)
                         set_step(from_email, 10)
-                    print(call_res)
-                    send_email(from_email, call_res)
+                        print(call_res)
+                        send_email(from_email, call_res)
                    
 
                 email_mark_as_read(message['id'])
@@ -347,8 +348,7 @@ def read_md_email():
                         print(res)
                         if res == "Yes":
                             set_step(from_email, 4)
-                            call_res = confirm_screening(
-                                from_email)
+                            call_res = open_job(from_email)
                             print(call_res)
                             send_email(from_email, call_res)
                         elif res == "No":
@@ -363,60 +363,45 @@ def read_md_email():
                         res = calendar_book(timeslot[from_email], clean_msg(
                             msg['snippet']), from_email)
                         print(res)
-                        call_res = ""
                         if res == "None":
-                            call_res = calendar_show()
+                           timeslot[from_email] = calendar_show()
+                           print(timeslot[from_email])
+                           send_email(from_email, timeslot[from_email])
                         else:
                             call_res = reserve_message(from_email, res)
                             set_step(from_email, 10)
-                        print(call_res)
-                        send_email(from_email, call_res)
+                            print(call_res)
+                            send_email(from_email, call_res)
+                            
+                        
                 elif step == 4:
-                    res = confirm_screening_answer(
+                    res = open_job_answer(
                         from_email, clean_msg(msg['snippet']))
                     print(res)
                     if res == "Yes":
                         set_step(from_email, 5)
-                        call_res = screening_question(from_email)
+                        call_res = commute_job(from_email)
                         print(call_res)
                         send_email(from_email, call_res)
                     else:
-                        call_res = other_skill_end()
+                        call_res = end_message()
                         print(call_res)
                         send_email(from_email, call_res)
                         set_step(from_email, 10)
                 elif step == 5:
-                    res = screening_question_answer(
+                    res = commute_job_answer(
                         from_email, clean_msg(msg['snippet']))
                     print(res)
                     if res == "Yes":
-                        step = 6
-                        call_res = question_motivate(from_email)
-                        print(call_res)
-                        send_email(from_email, call_res)
-                    elif res == "No":
-                        call_res = screening_question(from_email)
+                        set_step(from_email, 6)
+                        timeslot[from_email] = calendar_show()
+                        print(timeslot[from_email])
+                        send_email(from_email, timeslot[from_email])
+                    else:
+                        call_res = commute_job(from_email)
                         print(call_res)
                         send_email(from_email, call_res)
                 elif step == 6:
-                    print(clean_msg(msg['snippet']))
-                    set_step(from_email, 7)
-                    res = question_salary(from_email)
-                    print(res)
-                    send_email(from_email, res)
-                elif step == 7:
-                    print(clean_msg(msg['snippet']))
-                    set_step(from_email, 8)
-                    res = more_question(from_email)
-                    print(res)
-                    send_email(from_email, res)
-                elif step == 8:
-                    print(clean_msg(msg['snippet']))
-                    set_step(from_email, 9)
-                    timeslot = calendar_show()
-                    print(res)
-                    send_email(from_email, res)
-                elif step == 9:
                     res = calendar_book(timeslot[from_email], clean_msg(
                         msg['snippet']), from_email)
                     print(res)
@@ -427,9 +412,9 @@ def read_md_email():
                         send_email(from_email, call_res)
                         set_step(from_email, 10)
                     else:
-                        call_res = calendar_show()
-                        print(res)
-                        send_email(from_email, call_res)
+                        timeslot[from_email] = calendar_show()
+                        print(timeslot[from_email])
+                        send_email(from_email, timeslot[from_email])
 
                 email_mark_as_read(message['id'])
 
@@ -535,14 +520,15 @@ def read_email():
                     else:
                         res = calendar_book(timeslot[from_email], clean_msg(msg['snippet']), from_email)
                         print(res)
-                        call_res = ""
                         if res == "None":
-                            call_res = calendar_show()
+                            timeslot[from_email] = calendar_show()
+                            print(timeslot[from_email])
+                            send_email(from_email, timeslot[from_email])
                         else:
                             call_res = reserve_message(from_email, res)
                             set_step(from_email, 10)
-                        print(call_res)
-                        send_email(from_email, call_res)
+                            print(call_res)
+                            send_email(from_email, call_res)
                 elif step == 4:
                     res = confirm_screening_answer(
                         from_email, clean_msg(msg['snippet']))
@@ -584,9 +570,9 @@ def read_email():
                 elif step == 8:
                     print(clean_msg(msg['snippet']))
                     set_step(from_email, 9)
-                    timeslot = calendar_show()
-                    print(res)
-                    send_email(from_email, res)
+                    timeslot[from_email] = calendar_show()
+                    print(timeslot[from_email])
+                    send_email(from_email, timeslot[from_email])
                 elif step == 9:
                     res = calendar_book(timeslot[from_email], clean_msg(msg['snippet']), from_email)
                     print(res)
@@ -597,9 +583,9 @@ def read_email():
                         send_email(from_email, call_res)
                         set_step(from_email, 10)
                     else:
-                        call_res = calendar_show()
-                        print(res)
-                        send_email(from_email, call_res)
+                        timeslot[from_email] = calendar_show()
+                        print(timeslot[from_email])
+                        send_email(from_email, timeslot[from_email])
 
                 email_mark_as_read(message['id'])
 

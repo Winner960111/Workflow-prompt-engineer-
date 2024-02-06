@@ -157,8 +157,31 @@ def confirm_screening_answer(email, input):
     res = chatbot(system_content, user_content, email)
     return res
 
-# screening question
+#ask open for this job
+def open_job(email):
+    chat_message[email] = "good! And I would like to know if you have a vacancy for this job."
+    return chat_message[email]
 
+def open_job_answer(email, input):
+    system_content = f"As a information analyzer, you should answer only a word. If {input} is positive about {chat_message[email]}, respond with 'Yes' and is negative, respond with 'No'."
+    user_content = f"please analyze {input}"
+    res = chatbot(system_content, user_content, email)
+    return res
+# ask commute for this job
+
+def commute_job(email):
+    system_content = f"As a professional AI recruitment assistant from Portal, you should ask if the candidate can commute and how far does the candidate live from the location of the company. Consider the location of the company from {job_description}. You should make simply sentences inside 30 words. You should not always share topics, your name, or your position."
+    user_content = "Please send the message to candidate"
+    res = chatbot(system_content, user_content, email)
+    return res
+
+def commute_job_answer(email, input):
+    system_content = f"As a information analyzer, you should answer only a word. If {input} is related to {chat_message[email]} wether it's posive state or is negative one, respond with 'Yes' and is not related, respond with 'No'."
+    user_content = f"please analyze {input}"
+    res = chatbot(system_content, user_content, email)
+    return res
+
+# screening question
 
 def screening_question(email):
     system_content = f"As a professional AI recruitment assistant from Portal, You should make 3 screening question based on {job_description}. The questions of experiences and cirtification for {job_description} must be included in screening question. Each screening question should be inside 20 words."
@@ -280,7 +303,8 @@ def calendar_show():
         model="gpt-4-1106-preview",
         messages=messages
     )
-    return response.choices[0].message.content
+    res = f"Good! And then, I would like to schedule an interview with the hiring manager for this project.\n{response.choices[0].message.content}"
+    return res
 
 
 def calendar_book(bot_msg, candidate_msg, email):
@@ -312,7 +336,10 @@ def calendar_book(bot_msg, candidate_msg, email):
         function_time = response.choices[0].message.tool_calls[0].function.arguments
         start_time = function_time.split("\"")[3]
         end_time = function_time.split("\"")[7]
-
+        if start_time[-1] != 'Z':
+            start_time+='Z'
+        if end_time[-1] != 'Z':
+            end_time += 'Z'
         print(f"save time format => {start_time}")
         # Connect to the database
         conn = sqlite3.connect('mydb.sqlite')
