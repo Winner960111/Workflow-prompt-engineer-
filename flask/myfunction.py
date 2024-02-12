@@ -295,7 +295,7 @@ def calendar_show():
         content += f"{slot[0]} - {slot[1]}\n"
     messages = []
     messages.append(
-        {"role": "system", "content": "As a professional AI assistant, you should speak polite and kind. you should ask shortly inside 20 words include timeslot. You should display the list of timeslot."})
+        {"role": "system", "content": "As a professional AI assistant, you should speak polite and kind. you should ask shortly inside 20 words include timeslot. You should display the list of timeslot. You must consider current date."})
     messages.append(
         {"role": "user", "content": f"please make the message that ask to candidate available interview time based on {content}."})
 
@@ -310,14 +310,14 @@ def calendar_show():
 def calendar_book(bot_msg, candidate_msg, email):
     messages = []
     messages.append(
-        {"role": "system", "content": "Please answer which time slot is selected by user with date."})
+        {"role": "system", "content": f"Please answer which time slot is selected by user with current date. You should only answer as time. {bot_msg} include the current date."})
     messages.append(
         {"role": "user", "content": f"{bot_msg}\nUser's response: {candidate_msg}"})
 
+    print(f"this is bot's message {bot_msg}")
     response = openai_client.chat.completions.create(
         model="gpt-4-1106-preview",
         messages=messages,
-
     )
 
     set_time = response.choices[0].message.content
