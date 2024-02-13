@@ -1,7 +1,8 @@
 import sqlite3
 from O365 import Account, MSGraphProtocol
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import datetime as dt
+import pytz
 from openai import OpenAI
 import os
 import json
@@ -52,7 +53,7 @@ def chatbot(system, user, email):
     messages.append({"role": "user", "content": user})
     # Request gpt-4 for chat completion
     response = openai_client.chat.completions.create(
-        model="gpt-4",
+        model="gpt-3.5-turbo-0125",
         messages=messages
     )
 
@@ -104,8 +105,8 @@ def JD_recruiter(email, other):
 
 
 def JD_recruiter_answer(email, input):
-    system_content = f"As an information analyzer, you only need to answer one word. If the input content is a request for a job description of {job_description}, respond with 'Go'. And if the input content is a request for a direct interview with the hiring manager, respond with 'Interview'. If the information entered is not a job description or interview with a recruiter, respond with 'Other'. The information entered here is {input}."
-    user_content = input
+    system_content = f"As an information analyzer, you only need to answer one word. If the input content is rleated to a request for a job description of {job_description}, respond with 'Go'. And if the input content is related to a request for a direct interview with the hiring manager, respond with 'Interview'. If the information entered is not related to a job description or interview with a recruiter, respond with 'Other'. The information entered here is {input}."
+    user_content = f"please analyze {input}"
     res = chatbot(system_content, user_content, email)
     return res
 
@@ -247,7 +248,7 @@ def other_skill_end():
 
 
 def calendar_show():
-
+    global date
     # Establish a connection to the database
     conn = sqlite3.connect('mydb.sqlite')
     cursor = conn.cursor()
@@ -263,25 +264,40 @@ def calendar_show():
     # Close the cursor and connection
     cursor.close()
     conn.close()
-    # print(f"busy event is recieved as following:{busy_events}")
+    utc_now = datetime.utcnow().replace(tzinfo=timezone.utc)
 
-    start_time = datetime.now().replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+    # Set start_time to current hour with 0 minute, 0 seconds in UTC
+    start_time = utc_now.replace(
+        minute=0, second=0, microsecond=0) + timedelta(hours=2)
+   # Use today's date in UTC
+    date = utc_now.date()
+    print(f"current date is following ===>{date}")
+
     end_time = start_time + timedelta(days=1)
     available_slots = []
     current_time = start_time
+    print(f"current_time is =>{current_time}")
+
+    # Continue with your logic here, ensure that datetime.strptime is given UTC times
 
     while len(available_slots) < 3 and current_time < end_time:
         format = "%Y-%m-%dT%H:%M:%SZ"
         slot_end_time = current_time + timedelta(minutes=30)
         for event in busy_events:
-            # Use square brackets for dictionary key access
+
+            # Parse start and end times as UTC
             start = event['start_time']
-            # Use square brackets for dictionary key access
             end = event['end_time']
+
+            if start and end:
+                start = datetime.strptime(start, format).replace(tzinfo=timezone.utc)
+                end = datetime.strptime(end, format).replace(tzinfo=timezone.utc)
+            print(f"start time and end time =>{start} + {end}")
+            # The rest of your comparison logic can remain unchanged as long as it compares aware datetimes
 
             if start == None and end == None:
                 slot_busy = False
-            elif datetime.strptime(start, format) >= current_time and datetime.strptime(end, format) <= slot_end_time:
+            elif start >= current_time and end <= slot_end_time:
                 slot_busy = True
             else:
                 slot_busy = False
@@ -295,12 +311,12 @@ def calendar_show():
         content += f"{slot[0]} - {slot[1]}\n"
     messages = []
     messages.append(
-        {"role": "system", "content": "As a professional AI assistant, you should speak polite and kind. you should ask shortly inside 20 words include timeslot. You should display the list of timeslot. You must consider current date."})
+        {"role": "system", "content": f"As a professional AI assistant, you should speak polite and kind. you should ask shortly inside 20 words include timeslot. You should display the list and timezone of timeslot. You must consider {date}"})
     messages.append(
         {"role": "user", "content": f"please make the message that ask to candidate available interview time based on {content}."})
 
     response = openai_client.chat.completions.create(
-        model="gpt-4-1106-preview",
+        model="gpt-3.5-turbo-0125",
         messages=messages
     )
     res = f"Good! And then, I would like to schedule an interview with the hiring manager for this project.\n{response.choices[0].message.content}"
@@ -310,29 +326,31 @@ def calendar_show():
 def calendar_book(bot_msg, candidate_msg, email):
     messages = []
     messages.append(
-        {"role": "system", "content": f"Please answer which time slot is selected by user with current date. You should only answer as time. {bot_msg} include the current date."})
+        {"role": "system", "content": f"Please answer which time slot is selected by user with {date}. You should only answer as date and time. {bot_msg} include the {date}"})
     messages.append(
         {"role": "user", "content": f"{bot_msg}\nUser's response: {candidate_msg}"})
 
     print(f"this is bot's message {bot_msg}")
     response = openai_client.chat.completions.create(
-        model="gpt-4-1106-preview",
+        model="gpt-3.5-turbo-0125",
         messages=messages,
     )
-
     set_time = response.choices[0].message.content
+    print(f"this is the preserve time===========>{set_time}")
+
     messages = []
     messages.append(
         {"role": "system", "content": "Please answer which time slot is selected by user. If user didn't select time slot, you have to answer as None"})
     messages.append({"role": "user", "content": set_time})
 
     response = openai_client.chat.completions.create(
-        model="gpt-4-1106-preview",
+        model="gpt-3.5-turbo-0125",
         messages=messages,
         tools=calendar_tools,
     )
 
     try:
+        print(f"response is got like this =>{response}")
         function_time = response.choices[0].message.tool_calls[0].function.arguments
         start_time = function_time.split("\"")[3]
         end_time = function_time.split("\"")[7]

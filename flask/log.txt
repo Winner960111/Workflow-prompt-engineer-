@@ -1,36 +1,32 @@
-To candidate => Dear HaoMing Lin,
-
-I observed your profile and believe your expertise aligns well with our Senior Full-Stack Developer role in Texas. Are you interested in exploring this opportunity further?
-To candidate => Dear Chenyi Hao,
-
-I came across your profile and was impressed by your experience and skills. Our team at Portal is looking for a Senior Full-Stack Developer based in Texas. Your profile seems to be a perfect match. I'd love to discuss this opportunity further at your convenience. Would you be interested in exploring this further? 
-
-Best, 
-Recruitment Assistant from Portal
+To candidate => Hello HaoMing Lin, Your profile is a strong match for the Senior Full-stack Developer role in our Texas office. Are you interested in learning more about this opportunity?
+To candidate => Based on your impressive profile, we believe you could be a great fit for the Senior Full-Stack Developer position at our office in Texas. Are you interested in learning more?
 From candidate => Yes, I am interested in this position.
 To candidate => Job description:
-I'm looking for a senior full-stack developer. Our office is in Texas.
+I'm looking for a senior full-stack developer. 
+Our office is in Texas.
 
-Can you please share how do you believe your skill set aligns with the requirements and demands of our company?
-From candidate => Yes, I am interested in this position.
-To candidate => Job Description:
-We are currently seeking a senior full-stack developer to join our team. Our office is located in Texas. Can you share how you believe your skill set aligns with the requirements and demands of our company?
+Can you share how you believe your skill set aligns with the requirements and demands of our company?
 From candidate => Yes, I am interested in this position.
 To candidate => Good! And then, I would like to schedule an interview with the hiring manager for this project.
-Could you please confirm your availability for an interview on February 12, 2024, during these times?
-
-1. 19:00 - 19:30
-2. 19:30 - 20:00
-3. 20:00 - 20:30
-From candidate => 19.00
-To candidate => Your interview has been scheduled for February 12, 2024, from 19:00 to 19:30 UTC.
+Good day! Could you kindly confirm your availability for an interview on 2024-02-13 at any of these time slots? 
+1. 10:00-10:30 AM UTC
+2. 10:30-11:00 AM UTC
+3. 11:00-11:30 AM UTC
 From candidate => Yes, I am interested in this position.
-To candidate => Good! And then, I would like to schedule an interview with the hiring manager for this project.
-Could you kindly confirm your availability for an interview on February 12, 2024, choosing from the following timeslots?
+To candidate => You have been scheduled for an interview with the recruitment manager on 13th February at 10:00 AM.
+From candidate => 10.00
+From candidate => Yes, I am interested in this position.
+To candidate => Job description:
+I'm looking for a senior full-stack developer.
+our office is in Texas.
 
-1. 19:30 - 20:00
-2. 20:00 - 20:30
-3. 20:30 - 21:00
+Can you share how you believe your skill set aligns with the requirements and demands of our company?
 From candidate => Thanks, I will be there.
-From candidate => 20.00
-To candidate => Your interview has been scheduled with the recruitment manager for February 12, 2024, between 20:00 - 20:30 Z.
+From candidate => Yes, I am interested in this position.
+To candidate => Good! And then, I would like to schedule an interview with the hiring manager for this project.
+Good day! Could you kindly provide your availability for the following interview timeslots on 2024-02-13 in UTC?
+1. 10:30 AM - 11:00 AM
+2. 11:00 AM - 11:30 AM
+3. 11:30 AM - 12:00 PM.
+From candidate => 10.30
+To candidate => You have an interview scheduled with the recruitment manager on February 13th between 10:30 AM - 11:00 AM.

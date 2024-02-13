@@ -547,7 +547,7 @@ def read_email():
                     res = screening_question_answer(from_email, clean_msg(msg['snippet']))
                     print(res)
                     if res == "Yes":
-                        step = 6
+                        set_step(from_email, 6)
                         call_res = question_motivate(from_email)
                         print(call_res)
                         send_email(from_email, call_res)
