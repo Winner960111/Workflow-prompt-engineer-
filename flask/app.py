@@ -163,194 +163,75 @@ def set_step(email, step):
 # send  simple email
 
 def read_simple_email():
-    global states, timeslot
-    email_items = []
-    # get the emails from SQLite DB
-    with sqlite3.connect('mydb.sqlite') as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT email FROM resume")
-        email_items = [row[0] for row in cursor.fetchall()]
-    cursor.close()
-    conn.close()
-
-    for from_email in email_items:
-
-        results = service.users().messages().list(
-            userId='me', q=f"from:{from_email}").execute()
-        email_messages = results.get('messages', [])
-
+    try:
+        global states, timeslot
+        email_items = []
+        # get the emails from SQLite DB
         with sqlite3.connect('mydb.sqlite') as conn:
             cursor = conn.cursor()
-            cursor.execute(
-                "SELECT step FROM resume WHERE email = ?", (from_email,))
-            step = cursor.fetchone()[0]
+            cursor.execute("SELECT email FROM resume")
+            email_items = [row[0] for row in cursor.fetchall()]
         cursor.close()
         conn.close()
 
-        print(f"On {from_email} current step is =>{step}")
-        for message in email_messages:
-            msg = service.users().messages().get(
-                userId='me', id=message['id']).execute()
+        for from_email in email_items:
 
-            if 'UNREAD' in msg['labelIds']:
-                filename = 'log.txt'
+            results = service.users().messages().list(
+                userId='me', q=f"from:{from_email}").execute()
+            email_messages = results.get('messages', [])
 
-                # Open the file in append mode
-                with open(filename, 'a') as file:
-                    # Append the new content to the file
-                    file.write(
-                        f"From candidate => {clean_msg(msg['snippet'])}\n")
+            with sqlite3.connect('mydb.sqlite') as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT step FROM resume WHERE email = ?", (from_email,))
+                step = cursor.fetchone()[0]
+            cursor.close()
+            conn.close()
 
-                if step == 1:
-                    res = init_answer(from_email, clean_msg(msg['snippet']))
-                    print(res)
-                    if (res == 'Yes'):
-                        set_step(from_email, 2)
-                        res = show_JD(from_email)
+            print(f"On {from_email} current step is =>{step}")
+            for message in email_messages:
+                msg = service.users().messages().get(
+                    userId='me', id=message['id']).execute()
+
+                if 'UNREAD' in msg['labelIds']:
+                    filename = 'log.txt'
+
+                    # Open the file in append mode
+                    with open(filename, 'a') as file:
+                        # Append the new content to the file
+                        file.write(
+                            f"From candidate => {clean_msg(msg['snippet'])}\n")
+
+                    if step == 1:
+                        res = init_answer(from_email, clean_msg(msg['snippet']))
                         print(res)
-                        send_email(from_email, res)
-                    elif (res == 'No'):
-                        res = reason_message()
+                        if (res == 'Yes'):
+                            set_step(from_email, 2)
+                            res = show_JD(from_email)
+                            print(res)
+                            send_email(from_email, res)
+                        elif (res == 'No'):
+                            res = reason_message()
+                            print(res)
+                            send_email(from_email, res)
+                            set_step(from_email, 0)
+                        else:
+                            res = init_message(from_email, True)
+                            print(res)
+                            send_email(from_email, res)
+                    elif step == 0:
+                        res = (clean_msg(msg['snippet']))
                         print(res)
-                        send_email(from_email, res)
-                        set_step(from_email, 0)
-                    else:
-                        res = init_message(from_email, True)
-                        print(res)
-                        send_email(from_email, res)
-                elif step == 0:
-                    res = (clean_msg(msg['snippet']))
-                    print(res)
-                    send_email(from_email, end_message())
-                    set_step(from_email, 10)
-                elif step == 2:
-                    res = show_JD_answer(from_email, clean_msg(msg['snippet']))
-                    print(res)
-                    if res == "Yes":
-                        set_step(from_email, 3)
-                        timeslot[from_email] = calendar_show()
-                        print(timeslot[from_email])
-                        send_email(from_email, timeslot[from_email])
-                    elif res == "No":
-                        call_res = end_message()
-                        print(call_res)
-                        send_email(from_email, call_res)
-                    else:
-                        call_res = show_JD(from_email)
-                        print(call_res)
-                        send_email(from_email, call_res)
-                    res = JD_recruiter_answer(
-                        from_email, clean_msg(msg['snippet']))
-                    print(res)
-                elif step == 3:
-                    res = calendar_book(timeslot[from_email], clean_msg(
-                        msg['snippet']), from_email)
-                    print(res)
-                    if res == "None":
-                        timeslot[from_email] = calendar_show()
-                        print(timeslot[from_email])
-                        send_email(from_email, timeslot[from_email])
-                    else:
-                        call_res = reserve_message(from_email, res)
+                        send_email(from_email, end_message())
                         set_step(from_email, 10)
-                        print(call_res)
-                        send_email(from_email, call_res)
-                   
-
-                email_mark_as_read(message['id'])
-
-# send medium email
-def read_md_email():
-    global states, timeslot
-    email_items = []
-    # get the emails from SQLite DB
-    with sqlite3.connect('mydb.sqlite') as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT email FROM resume")
-        email_items = [row[0] for row in cursor.fetchall()]
-    cursor.close()
-    conn.close()
-
-    for from_email in email_items:
-
-        results = service.users().messages().list(
-            userId='me', q=f"from:{from_email}").execute()
-        email_messages = results.get('messages', [])
-
-        with sqlite3.connect('mydb.sqlite') as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT step FROM resume WHERE email = ?", (from_email,))
-            step = cursor.fetchone()[0]
-        cursor.close()
-        conn.close()
-
-        print(f"On {from_email} current step is =>{step}")
-        for message in email_messages:
-            msg = service.users().messages().get(
-                userId='me', id=message['id']).execute()
-
-            if 'UNREAD' in msg['labelIds']:
-                filename = 'log.txt'
-
-                # Open the file in append mode
-                with open(filename, 'a') as file:
-                    # Append the new content to the file
-                    file.write(
-                        f"From candidate => {clean_msg(msg['snippet'])}\n")
-
-                if step == 1:
-                    res = init_answer(from_email, clean_msg(msg['snippet']))
-                    print(res)
-                    if (res == 'Yes'):
-                        set_step(from_email, 2)
-                        res = JD_recruiter(from_email, False)
-                        print(res)
-                        send_email(from_email, res)
-                    elif (res == 'No'):
-                        res = reason_message()
-                        print(res)
-                        send_email(from_email, res)
-                        set_step(from_email, 0)
-                    else:
-                        res = init_message(from_email, True)
-                        print(res)
-                        send_email(from_email, res)
-                elif step == 0:
-                    res = (clean_msg(msg['snippet']))
-                    print(res)
-                    send_email(from_email, end_message())
-                    set_step(from_email, 10)
-                elif step == 2:
-                    res = JD_recruiter_answer(
-                        from_email, clean_msg(msg['snippet']))
-                    print(res)
-                    if (res == 'Go'):
-                        set_step(from_email, 3)
-                        states[from_email] = 'Go'
-                        res = show_JD(from_email)
-                        print(res)
-                        send_email(from_email, res)
-                    elif (res == 'Interview'):
-                        set_step(from_email, 3)
-                        states[from_email] = "Interview"
-                        timeslot[from_email] = calendar_show()
-                        print(timeslot[from_email])
-                        send_email(from_email, timeslot[from_email])
-                    else:
-                        res = JD_recruiter(from_email, True)
-                        print(res)
-                        send_email(from_email, res)
-                elif step == 3:
-                    if states[from_email] == "Go":
-                        res = show_JD_answer(
-                            from_email, clean_msg(msg['snippet']))
+                    elif step == 2:
+                        res = show_JD_answer(from_email, clean_msg(msg['snippet']))
                         print(res)
                         if res == "Yes":
-                            set_step(from_email, 4)
-                            call_res = open_job(from_email)
-                            print(call_res)
-                            send_email(from_email, call_res)
+                            set_step(from_email, 3)
+                            timeslot[from_email] = calendar_show()
+                            print(timeslot[from_email])
+                            send_email(from_email, timeslot[from_email])
                         elif res == "No":
                             call_res = end_message()
                             print(call_res)
@@ -359,166 +240,12 @@ def read_md_email():
                             call_res = show_JD(from_email)
                             print(call_res)
                             send_email(from_email, call_res)
-                    else:
+                        res = JD_recruiter_answer(
+                            from_email, clean_msg(msg['snippet']))
+                        print(res)
+                    elif step == 3:
                         res = calendar_book(timeslot[from_email], clean_msg(
                             msg['snippet']), from_email)
-                        print(res)
-                        if res == "None":
-                           timeslot[from_email] = calendar_show()
-                           print(timeslot[from_email])
-                           send_email(from_email, timeslot[from_email])
-                        else:
-                            call_res = reserve_message(from_email, res)
-                            set_step(from_email, 10)
-                            print(call_res)
-                            send_email(from_email, call_res)
-                            
-                        
-                elif step == 4:
-                    res = open_job_answer(
-                        from_email, clean_msg(msg['snippet']))
-                    print(res)
-                    if res == "Yes":
-                        set_step(from_email, 5)
-                        call_res = commute_job(from_email)
-                        print(call_res)
-                        send_email(from_email, call_res)
-                    else:
-                        call_res = end_message()
-                        print(call_res)
-                        send_email(from_email, call_res)
-                        set_step(from_email, 10)
-                elif step == 5:
-                    res = commute_job_answer(
-                        from_email, clean_msg(msg['snippet']))
-                    print(res)
-                    if res == "Yes":
-                        set_step(from_email, 6)
-                        timeslot[from_email] = calendar_show()
-                        print(timeslot[from_email])
-                        send_email(from_email, timeslot[from_email])
-                    else:
-                        call_res = commute_job(from_email)
-                        print(call_res)
-                        send_email(from_email, call_res)
-                elif step == 6:
-                    res = calendar_book(timeslot[from_email], clean_msg(
-                        msg['snippet']), from_email)
-                    print(res)
-                    if res != "None":
-                        call_res = reserve_message(
-                            from_email, clean_msg(msg['snippet']))
-                        print(call_res)
-                        send_email(from_email, call_res)
-                        set_step(from_email, 10)
-                    else:
-                        timeslot[from_email] = calendar_show()
-                        print(timeslot[from_email])
-                        send_email(from_email, timeslot[from_email])
-
-                email_mark_as_read(message['id'])
-
-# send complex email
-def read_email():
-    global states, timeslot
-    email_items = []
-    # get the emails from SQLite DB
-    with sqlite3.connect('mydb.sqlite') as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT email FROM resume")
-        email_items = [row[0] for row in cursor.fetchall()]
-    cursor.close()
-    conn.close()
-
-    for from_email in email_items:
-
-        results = service.users().messages().list(
-            userId='me', q=f"from:{from_email}").execute()
-        email_messages = results.get('messages', [])
-
-        with sqlite3.connect('mydb.sqlite') as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT step FROM resume WHERE email = ?", (from_email,))
-            step = cursor.fetchone()[0]
-        cursor.close()
-        conn.close()
-
-        print(f"On {from_email} current step is =>{step}")
-        for message in email_messages:
-            msg = service.users().messages().get(
-                userId='me', id=message['id']).execute()
-
-            if 'UNREAD' in msg['labelIds']:
-                filename = 'log.txt'
-
-                # Open the file in append mode
-                with open(filename, 'a') as file:
-                    # Append the new content to the file
-                    file.write(f"From candidate => {clean_msg(msg['snippet'])}\n")
-
-                if step == 1:
-                    res = init_answer(from_email, clean_msg(msg['snippet']))
-                    print(res)
-                    if (res == 'Yes'):
-                        set_step(from_email, 2)
-                        res = JD_recruiter(from_email, False)
-                        print(res)
-                        send_email(from_email, res)
-                    elif (res == 'No'):
-                        res = reason_message()
-                        print(res)
-                        send_email(from_email, res)
-                        set_step(from_email, 0)
-                    else:
-                        res = init_message(from_email, True)
-                        print(res)
-                        send_email(from_email, res)
-                elif step == 0:
-                    res = (clean_msg(msg['snippet']))
-                    print(res)
-                    send_email(from_email, end_message())
-                    set_step(from_email, 10)
-                elif step == 2:
-                    res = JD_recruiter_answer(from_email, clean_msg(msg['snippet']))
-                    print(res)
-                    if (res == 'Go'):
-                        set_step(from_email, 3)
-                        states[from_email] = 'Go'
-                        res = show_JD(from_email)
-                        print(res)
-                        send_email(from_email, res)
-                    elif (res == 'Interview'):
-                        set_step(from_email, 3)
-                        states[from_email] = "Interview"
-                        timeslot[from_email] = calendar_show()
-                        print(timeslot[from_email])
-                        send_email(from_email, timeslot[from_email])
-                    else:
-                        res = JD_recruiter(from_email, True)
-                        print(res)
-                        send_email(from_email, res)
-                elif step == 3:
-                    if states[from_email] == "Go":
-                        res = show_JD_answer(
-                            from_email, clean_msg(msg['snippet']))
-                        print(res)
-                        if res == "Yes":
-                            set_step(from_email, 4)
-                            call_res = confirm_screening(
-                                from_email)
-                            print(call_res)
-                            send_email(from_email, call_res)
-                        elif res == "No":
-                            call_res = end_message()
-                            print(call_res)
-                            send_email(from_email, call_res)
-                        else:
-                            call_res = show_JD(from_email)
-                            print(call_res)
-                            send_email(from_email, call_res)
-                    else:
-                        res = calendar_book(timeslot[from_email], clean_msg(msg['snippet']), from_email)
                         print(res)
                         if res == "None":
                             timeslot[from_email] = calendar_show()
@@ -529,65 +256,345 @@ def read_email():
                             set_step(from_email, 10)
                             print(call_res)
                             send_email(from_email, call_res)
-                elif step == 4:
-                    res = confirm_screening_answer(
-                        from_email, clean_msg(msg['snippet']))
-                    print(res)
-                    if res == "Yes":
-                        set_step(from_email, 5)
-                        call_res = screening_question(from_email)
-                        print(call_res)
-                        send_email(from_email, call_res)
-                    else:
-                        call_res = other_skill_end()
-                        print(call_res)
-                        send_email(from_email, call_res)
+                    
+
+                    email_mark_as_read(message['id'])
+    except Exception as e:
+        print(e)
+
+# send medium email
+def read_md_email():
+    try:
+        global states, timeslot
+        email_items = []
+        # get the emails from SQLite DB
+        with sqlite3.connect('mydb.sqlite') as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT email FROM resume")
+            email_items = [row[0] for row in cursor.fetchall()]
+        cursor.close()
+        conn.close()
+
+        for from_email in email_items:
+
+            results = service.users().messages().list(
+                userId='me', q=f"from:{from_email}").execute()
+            email_messages = results.get('messages', [])
+
+            with sqlite3.connect('mydb.sqlite') as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT step FROM resume WHERE email = ?", (from_email,))
+                step = cursor.fetchone()[0]
+            cursor.close()
+            conn.close()
+
+            print(f"On {from_email} current step is =>{step}")
+            for message in email_messages:
+                msg = service.users().messages().get(
+                    userId='me', id=message['id']).execute()
+
+                if 'UNREAD' in msg['labelIds']:
+                    filename = 'log.txt'
+
+                    # Open the file in append mode
+                    with open(filename, 'a') as file:
+                        # Append the new content to the file
+                        file.write(
+                            f"From candidate => {clean_msg(msg['snippet'])}\n")
+
+                    if step == 1:
+                        res = init_answer(from_email, clean_msg(msg['snippet']))
+                        print(res)
+                        if (res == 'Yes'):
+                            set_step(from_email, 2)
+                            res = JD_recruiter(from_email, False)
+                            print(res)
+                            send_email(from_email, res)
+                        elif (res == 'No'):
+                            res = reason_message()
+                            print(res)
+                            send_email(from_email, res)
+                            set_step(from_email, 0)
+                        else:
+                            res = init_message(from_email, True)
+                            print(res)
+                            send_email(from_email, res)
+                    elif step == 0:
+                        res = (clean_msg(msg['snippet']))
+                        print(res)
+                        send_email(from_email, end_message())
                         set_step(from_email, 10)
-                elif step == 5:
-                    res = screening_question_answer(from_email, clean_msg(msg['snippet']))
-                    print(res)
-                    if res == "Yes":
-                        set_step(from_email, 6)
-                        call_res = question_motivate(from_email)
-                        print(call_res)
-                        send_email(from_email, call_res)
-                    elif res == "No":
-                        call_res = screening_question(from_email)
-                        print(call_res)
-                        send_email(from_email, call_res)
-                elif step == 6:
-                    print(clean_msg(msg['snippet']))
-                    set_step(from_email, 7)
-                    res = question_salary(from_email)
-                    print(res)
-                    send_email(from_email, res)
-                elif step == 7:
-                    print(clean_msg(msg['snippet']))
-                    set_step(from_email, 8)
-                    res = more_question(from_email)
-                    print(res)
-                    send_email(from_email, res)
-                elif step == 8:
-                    print(clean_msg(msg['snippet']))
-                    set_step(from_email, 9)
-                    timeslot[from_email] = calendar_show()
-                    print(timeslot[from_email])
-                    send_email(from_email, timeslot[from_email])
-                elif step == 9:
-                    res = calendar_book(timeslot[from_email], clean_msg(msg['snippet']), from_email)
-                    print(res)
-                    if res != "None":
-                        call_res = reserve_message(
+                    elif step == 2:
+                        res = JD_recruiter_answer(
                             from_email, clean_msg(msg['snippet']))
-                        print(call_res)
-                        send_email(from_email, call_res)
+                        print(res)
+                        if (res == 'Go'):
+                            set_step(from_email, 3)
+                            states[from_email] = 'Go'
+                            res = show_JD(from_email)
+                            print(res)
+                            send_email(from_email, res)
+                        elif (res == 'Interview'):
+                            set_step(from_email, 3)
+                            states[from_email] = "Interview"
+                            timeslot[from_email] = calendar_show()
+                            print(timeslot[from_email])
+                            send_email(from_email, timeslot[from_email])
+                        else:
+                            res = JD_recruiter(from_email, True)
+                            print(res)
+                            send_email(from_email, res)
+                    elif step == 3:
+                        if states[from_email] == "Go":
+                            res = show_JD_answer(
+                                from_email, clean_msg(msg['snippet']))
+                            print(res)
+                            if res == "Yes":
+                                set_step(from_email, 4)
+                                call_res = open_job(from_email)
+                                print(call_res)
+                                send_email(from_email, call_res)
+                            elif res == "No":
+                                call_res = end_message()
+                                print(call_res)
+                                send_email(from_email, call_res)
+                            else:
+                                call_res = show_JD(from_email)
+                                print(call_res)
+                                send_email(from_email, call_res)
+                        else:
+                            res = calendar_book(timeslot[from_email], clean_msg(
+                                msg['snippet']), from_email)
+                            print(res)
+                            if res == "None":
+                                timeslot[from_email] = calendar_show()
+                                print(timeslot[from_email])
+                                send_email(from_email, timeslot[from_email])
+                            else:
+                                call_res = reserve_message(from_email, res)
+                                set_step(from_email, 10)
+                                print(call_res)
+                                send_email(from_email, call_res)
+                    elif step == 4:
+                        res = open_job_answer(
+                            from_email, clean_msg(msg['snippet']))
+                        print(res)
+                        if res == "Yes":
+                            set_step(from_email, 5)
+                            call_res = commute_job(from_email)
+                            print(call_res)
+                            send_email(from_email, call_res)
+                        else:
+                            call_res = end_message()
+                            print(call_res)
+                            send_email(from_email, call_res)
+                            set_step(from_email, 10)
+                    elif step == 5:
+                        res = commute_job_answer(
+                            from_email, clean_msg(msg['snippet']))
+                        print(res)
+                        if res == "Yes":
+                            set_step(from_email, 6)
+                            timeslot[from_email] = calendar_show()
+                            print(timeslot[from_email])
+                            send_email(from_email, timeslot[from_email])
+                        else:
+                            call_res = commute_job(from_email)
+                            print(call_res)
+                            send_email(from_email, call_res)
+                    elif step == 6:
+                        res = calendar_book(timeslot[from_email], clean_msg(
+                            msg['snippet']), from_email)
+                        print(res)
+                        if res != "None":
+                            call_res = reserve_message(
+                                from_email, clean_msg(msg['snippet']))
+                            print(call_res)
+                            send_email(from_email, call_res)
+                            set_step(from_email, 10)
+                        else:
+                            timeslot[from_email] = calendar_show()
+                            print(timeslot[from_email])
+                            send_email(from_email, timeslot[from_email])
+
+                    email_mark_as_read(message['id'])
+    except Exception as e:
+        print(e)
+
+# send complex email
+def read_email():
+    try:
+        global states, timeslot
+        email_items = []
+        # get the emails from SQLite DB
+        with sqlite3.connect('mydb.sqlite') as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT email FROM resume")
+            email_items = [row[0] for row in cursor.fetchall()]
+        cursor.close()
+        conn.close()
+
+        for from_email in email_items:
+
+            results = service.users().messages().list(
+                userId='me', q=f"from:{from_email}").execute()
+            email_messages = results.get('messages', [])
+
+            with sqlite3.connect('mydb.sqlite') as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT step FROM resume WHERE email = ?", (from_email,))
+                step = cursor.fetchone()[0]
+            cursor.close()
+            conn.close()
+
+            print(f"On {from_email} current step is =>{step}")
+            for message in email_messages:
+                msg = service.users().messages().get(
+                    userId='me', id=message['id']).execute()
+
+                if 'UNREAD' in msg['labelIds']:
+                    filename = 'log.txt'
+
+                    # Open the file in append mode
+                    with open(filename, 'a') as file:
+                        # Append the new content to the file
+                        file.write(f"From candidate => {clean_msg(msg['snippet'])}\n")
+
+                    if step == 1:
+                        res = init_answer(from_email, clean_msg(msg['snippet']))
+                        print(res)
+                        if (res == 'Yes'):
+                            set_step(from_email, 2)
+                            res = JD_recruiter(from_email, False)
+                            print(res)
+                            send_email(from_email, res)
+                        elif (res == 'No'):
+                            res = reason_message()
+                            print(res)
+                            send_email(from_email, res)
+                            set_step(from_email, 0)
+                        else:
+                            res = init_message(from_email, True)
+                            print(res)
+                            send_email(from_email, res)
+                    elif step == 0:
+                        res = (clean_msg(msg['snippet']))
+                        print(res)
+                        send_email(from_email, end_message())
                         set_step(from_email, 10)
-                    else:
+                    elif step == 2:
+                        res = JD_recruiter_answer(from_email, clean_msg(msg['snippet']))
+                        print(res)
+                        if (res == 'Go'):
+                            set_step(from_email, 3)
+                            states[from_email] = 'Go'
+                            res = show_JD(from_email)
+                            print(res)
+                            send_email(from_email, res)
+                        elif (res == 'Interview'):
+                            set_step(from_email, 3)
+                            states[from_email] = "Interview"
+                            timeslot[from_email] = calendar_show()
+                            print(timeslot[from_email])
+                            send_email(from_email, timeslot[from_email])
+                        else:
+                            res = JD_recruiter(from_email, True)
+                            print(res)
+                            send_email(from_email, res)
+                    elif step == 3:
+                        if states[from_email] == "Go":
+                            res = show_JD_answer(
+                                from_email, clean_msg(msg['snippet']))
+                            print(res)
+                            if res == "Yes":
+                                set_step(from_email, 4)
+                                call_res = confirm_screening(
+                                    from_email)
+                                print(call_res)
+                                send_email(from_email, call_res)
+                            elif res == "No":
+                                call_res = end_message()
+                                print(call_res)
+                                send_email(from_email, call_res)
+                            else:
+                                call_res = show_JD(from_email)
+                                print(call_res)
+                                send_email(from_email, call_res)
+                        else:
+                            res = calendar_book(timeslot[from_email], clean_msg(msg['snippet']), from_email)
+                            print(res)
+                            if res == "None":
+                                timeslot[from_email] = calendar_show()
+                                print(timeslot[from_email])
+                                send_email(from_email, timeslot[from_email])
+                            else:
+                                call_res = reserve_message(from_email, res)
+                                set_step(from_email, 10)
+                                print(call_res)
+                                send_email(from_email, call_res)
+                    elif step == 4:
+                        res = confirm_screening_answer(
+                            from_email, clean_msg(msg['snippet']))
+                        print(res)
+                        if res == "Yes":
+                            set_step(from_email, 5)
+                            call_res = screening_question(from_email)
+                            print(call_res)
+                            send_email(from_email, call_res)
+                        else:
+                            call_res = other_skill_end()
+                            print(call_res)
+                            send_email(from_email, call_res)
+                            set_step(from_email, 10)
+                    elif step == 5:
+                        res = screening_question_answer(from_email, clean_msg(msg['snippet']))
+                        print(res)
+                        if res == "Yes":
+                            set_step(from_email, 6)
+                            call_res = question_motivate(from_email)
+                            print(call_res)
+                            send_email(from_email, call_res)
+                        elif res == "No":
+                            call_res = screening_question(from_email)
+                            print(call_res)
+                            send_email(from_email, call_res)
+                    elif step == 6:
+                        print(clean_msg(msg['snippet']))
+                        set_step(from_email, 7)
+                        res = question_salary(from_email)
+                        print(res)
+                        send_email(from_email, res)
+                    elif step == 7:
+                        print(clean_msg(msg['snippet']))
+                        set_step(from_email, 8)
+                        res = more_question(from_email)
+                        print(res)
+                        send_email(from_email, res)
+                    elif step == 8:
+                        print(clean_msg(msg['snippet']))
+                        set_step(from_email, 9)
                         timeslot[from_email] = calendar_show()
                         print(timeslot[from_email])
                         send_email(from_email, timeslot[from_email])
+                    elif step == 9:
+                        res = calendar_book(timeslot[from_email], clean_msg(msg['snippet']), from_email)
+                        print(res)
+                        if res != "None":
+                            call_res = reserve_message(
+                                from_email, clean_msg(msg['snippet']))
+                            print(call_res)
+                            send_email(from_email, call_res)
+                            set_step(from_email, 10)
+                        else:
+                            timeslot[from_email] = calendar_show()
+                            print(timeslot[from_email])
+                            send_email(from_email, timeslot[from_email])
 
-                email_mark_as_read(message['id'])
+                    email_mark_as_read(message['id'])
+    except Exception as e:
+        print(e)
 
 
 @app.route('/message', methods=['POST'])
@@ -669,62 +676,66 @@ def log():
 
 @app.route('/screen_start', methods=['POST'])
 def screen_start():
-    if request.method == 'POST':
-        clean_DB()
-        res = request.json
-        print(res)
-        job_id = res['job_description_title']
-        level = res['level']
-        with open(f'../job_description/{job_id}.json') as file:
-            job_description = json.load(file)['job_description']
-        for candidate in res['candidates']:
-            email = candidate['email']
-            number = candidate['phone']
-            first_name = candidate['first_name']
-            last_name = candidate['last_name']
-            name = f"{first_name} {last_name}"
+    try:
 
-            # Define the data to be written
-            data = {
-                "job_description": job_description,
-                "job_title": job_id,
-                "candidate_name": name
-            }
+        if request.method == 'POST':
+            clean_DB()
+            res = request.json
+            print(res)
+            job_id = res['job_description_title']
+            level = res['level']
+            with open(f'../job_description/{job_id}.json') as file:
+                job_description = json.load(file)['job_description']
+            for candidate in res['candidates']:
+                email = candidate['email']
+                number = candidate['phone']
+                first_name = candidate['first_name']
+                last_name = candidate['last_name']
+                name = f"{first_name} {last_name}"
 
-            # Open the file for writing
-            with open('info.json', 'w') as file:
-                # Write the data to the file in JSON format
-                json.dump(data, file)
+                # Define the data to be written
+                data = {
+                    "job_description": job_description,
+                    "job_title": job_id,
+                    "candidate_name": name
+                }
 
-            # if not '+' in number:
-            #     number = '+' + number
+                # Open the file for writing
+                with open('info.json', 'w') as file:
+                    # Write the data to the file in JSON format
+                    json.dump(data, file)
 
-            # phone_message(f"Hi, {name}\n{screen_question}", number, 'sms')
-            # phone_message(f"Hi, {name}\n{screen_question}", number, 'wa')
-            # end
+                # if not '+' in number:
+                #     number = '+' + number
 
-            resume_data = {}
-            resume_data['first_name'] = first_name
-            resume_data['last_name'] = last_name
-            resume_data['email'] = email
-            resume_data['mobile'] = number
+                # phone_message(f"Hi, {name}\n{screen_question}", number, 'sms')
+                # phone_message(f"Hi, {name}\n{screen_question}", number, 'wa')
+                # end
 
-            resume_data['filename'] = f"{first_name} {last_name}_{number}"
-            func_res = init_message(email, False)
-            send_email(email, func_res)
-            # set step in DB
-            insert_resume_db(resume_data)
-        while (True):
-            if level == "complex":
-                read_email()
-            elif level == "medium":
-                read_md_email()
-            else:
-                read_simple_email()
-            time.sleep(20)
+                resume_data = {}
+                resume_data['first_name'] = first_name
+                resume_data['last_name'] = last_name
+                resume_data['email'] = email
+                resume_data['mobile'] = number
 
-    
-    return "Good"
+                resume_data['filename'] = f"{first_name} {last_name}_{number}"
+                func_res = init_message(email, False)
+                send_email(email, func_res)
+                # set step in DB
+                insert_resume_db(resume_data)
+            while (True):
+                if level == "complex":
+                    read_email()
+                elif level == "medium":
+                    read_md_email()
+                else:
+                    read_simple_email()
+                time.sleep(20)
+
+        return "Good"
+    except Exception as e:
+        print(e)
+        return "Bad"
 
 
 if __name__ == '__main__':
